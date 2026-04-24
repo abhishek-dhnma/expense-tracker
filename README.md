@@ -55,8 +55,7 @@ The app uses an embedded SQLite database (`expenses.db`). Because it is hosted o
 - `POST /expenses`: Create and save a new expense.
 
 ## Application Screenshot
-<!-- Add your screenshot here later -->
-![Application Screenshot]()
+![Application Screenshot](photos/expense_tracker.png)
 
 ## System Design & Architecture Decisions
 
@@ -97,6 +96,12 @@ Right now, this application is built as a single server with a local database fi
 - **Use Redis for Idempotency (Distributed Caching):** Currently, Idempotency Keys are saved in the server's RAM (`ConcurrentHashMap`). In a horizontally scaled environment with multiple servers, Server A wouldn't know about the keys in Server B's RAM. I would move this cache to **Redis**, a fast distributed in-memory store, so all servers share the same state.
 - **Add Pagination (API Scaling):** Currently, the API sends all expenses at once. For users with 100,000 expenses, this would crash the browser and overload the server. I would implement Spring Data JPA Pagination so the API only sends 50 expenses at a time.
 - **Separate the Frontend (CDN):** Instead of serving the HTML/JS from the Spring Boot server, I would rewrite the frontend in React and host it on a CDN (like Vercel or Cloudflare). This offloads the heavy lifting of static asset delivery from the Java backend, allowing it to focus purely on API logic.
+
+### 9. Production Monitoring (Actuator)
+To ensure the application is truly production-ready, I integrated **Spring Boot Actuator**. This automatically exposes enterprise-grade monitoring endpoints (like `/actuator/health`). In a real-world cloud environment, Load Balancers and Kubernetes use this endpoint to constantly check if the application is alive and healthy, allowing for automatic server restarts if the system crashes.
+
+### 10. Architecture Choice: Modular Monolith vs Microservices
+I intentionally chose to build this application as a **Modular Monolith** rather than a Microservice architecture. Given the domain scope (Expense Tracking), splitting this into microservices would be textbook over-engineering. It would introduce unnecessary network latency, complex distributed transaction management, and deployment overhead without any tangible benefits. By building a well-structured Monolith with clear internal boundaries (Controller -> Service -> Repository), the system remains highly cohesive, easy to deploy, and blazing fast, while still being perfectly capable of scaling horizontally behind a load balancer if traffic increases.
 
 ## License
 MIT License

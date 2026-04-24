@@ -1,14 +1,13 @@
 package com.abhishekdhiman.expensetracker.controller;
 
-import com.abhishekdhiman.expensetracker.model.Expense;
-import com.abhishekdhiman.expensetracker.repository.ExpenseRepository;
+import com.abhishekdhiman.expensetracker.dto.ExpenseDTO;
+import com.abhishekdhiman.expensetracker.service.ExpenseService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -17,6 +16,8 @@ import java.time.LocalDate;
 import java.util.Arrays;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -29,26 +30,26 @@ public class ExpenseControllerTest {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private ExpenseRepository expenseRepository;
+    private ExpenseService expenseService;
 
     @Autowired
     private ObjectMapper objectMapper;
 
     @Test
     public void testGetExpenses() throws Exception {
-        Expense e1 = new Expense();
+        ExpenseDTO e1 = new ExpenseDTO();
         e1.setId(1L);
         e1.setAmount(BigDecimal.valueOf(100.0));
         e1.setCategory("Food");
         e1.setDate(LocalDate.now());
 
-        Expense e2 = new Expense();
+        ExpenseDTO e2 = new ExpenseDTO();
         e2.setId(2L);
         e2.setAmount(BigDecimal.valueOf(50.0));
         e2.setCategory("Transport");
         e2.setDate(LocalDate.now());
 
-        Mockito.when(expenseRepository.findAll(any(Sort.class))).thenReturn(Arrays.asList(e1, e2));
+        Mockito.when(expenseService.getExpenses(isNull(), eq("date_desc"))).thenReturn(Arrays.asList(e1, e2));
 
         mockMvc.perform(get("/expenses"))
                 .andExpect(status().isOk())
@@ -59,18 +60,18 @@ public class ExpenseControllerTest {
 
     @Test
     public void testCreateExpense() throws Exception {
-        Expense expense = new Expense();
+        ExpenseDTO expense = new ExpenseDTO();
         expense.setAmount(BigDecimal.valueOf(150.0));
         expense.setCategory("Utilities");
         expense.setDate(LocalDate.now());
 
-        Expense savedExpense = new Expense();
+        ExpenseDTO savedExpense = new ExpenseDTO();
         savedExpense.setId(3L);
         savedExpense.setAmount(BigDecimal.valueOf(150.0));
         savedExpense.setCategory("Utilities");
         savedExpense.setDate(expense.getDate());
 
-        Mockito.when(expenseRepository.save(any(Expense.class))).thenReturn(savedExpense);
+        Mockito.when(expenseService.createExpense(any(ExpenseDTO.class), isNull())).thenReturn(savedExpense);
 
         mockMvc.perform(post("/expenses")
                 .contentType(MediaType.APPLICATION_JSON)
